@@ -1,0 +1,142 @@
+services:
+  deluge:
+    image: linuxserver/deluge
+    container_name: deluge
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Moscow
+    volumes:
+      - ./config/deluge:/config
+      - /data/downloads:/downloads
+    ports:
+      - 8112:8112
+      - 6881:6881
+      - 6881:6881/udp
+    networks:
+      - media-network
+    restart: unless-stopped
+
+  plex:
+    image: linuxserver/plex
+    container_name: plex
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - VERSION=docker
+    volumes:
+      - ./config/plex:/config
+      - /data/media:/media
+      - ./config/threadfin/conf/data:/playlists
+    restart: unless-stopped
+
+  sonarr:
+    image: linuxserver/sonarr
+    container_name: sonarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Moscow
+    volumes:
+      - ./config/sonarr:/config
+      - /data/media/tv:/tv
+      - /data/downloads:/downloads
+    ports:
+      - 8989:8989
+    networks:
+      - media-network
+    restart: unless-stopped
+
+  radarr:
+    image: linuxserver/radarr
+    container_name: radarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Moscow
+    volumes:
+      - ./config/radarr:/config
+      - /data/media/movies:/movies
+      - /data/downloads:/downloads
+    ports:
+      - 7878:7878
+    networks:
+      - media-network
+    restart: unless-stopped
+
+  prowlarr:
+    image: linuxserver/prowlarr:latest
+    container_name: prowlarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Moscow
+    volumes:
+      - ./config/prowlarr:/config
+    ports:
+      - 9696:9696
+    networks:
+      - media-network
+    restart: unless-stopped
+
+      #  threadfin:
+      #    image: fyb3roptik/threadfin:latest
+      #    container_name: threadfin
+      #    environment:
+      #      - PUID=1000
+      #      - PGID=1000
+      #      - TZ=Europe/Moscow
+      #    volumes:
+      #      - ./config/threadfin/conf:/home/threadfin/conf
+      #      - ./config/threadfin/data:/data
+      #      - ./config/threadfin/temp:/tmp/threadfin
+      #    ports:
+      #      - 34400:34400
+      #    networks:
+      #      - media-network
+      #    restart: unless-stopped
+
+  silverbullet:
+    image: ghcr.io/silverbulletmd/silverbullet:v2
+    container_name: silverbullet
+    restart: unless-stopped
+    environment:
+    - SB_USER=admin:admin
+    volumes:
+      - ./space:/space
+    ports:
+      - 3000:3000
+
+  dnsmasq:
+    image: dockurr/dnsmasq
+    container_name: dnsmasq
+    ports:
+      - 53:53/udp
+      - 5380:5380  # Веб-интерфейс
+    environment:
+      - “HTTP_USER=admin”
+      - “HTTP_PASS=admin”
+    volumes:
+      - ./config/dnsmasq.conf:/etc/dnsmasq.conf
+    restart: unless-stopped
+    networks:
+      - media-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    ports:
+      - 80:80
+    volumes:
+      - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./config/nginx/index.html:/usr/share/nginx/html/index.html:ro
+    networks:
+      - media-network
+    restart: unless-stopped
+    depends_on:
+      - dnsmasq
+
+networks:
+  media-network:
+    driver: bridge
