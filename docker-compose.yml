@@ -65,6 +65,23 @@ services:
       - media-network
     restart: unless-stopped
 
+  lidarr:
+    image: linuxserver/lidarr
+    container_name: lidarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Moscow
+    volumes:
+      - ./config/lidarr:/config
+      - /data/media/music:/music
+      - /data/downloads:/downloads
+    ports:
+      - 8686:8686
+    networks:
+      - media-network
+    restart: unless-stopped
+
   prowlarr:
     image: linuxserver/prowlarr:latest
     container_name: prowlarr
