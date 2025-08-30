@@ -1,0 +1,194 @@
+services:
+  silverbullet:
+    image: ghcr.io/silverbulletmd/silverbullet:v2
+    container_name: silverbullet
+    restart: unless-stopped
+    environment:
+    - SB_USER=admin:admin
+    volumes:
+      - ./space:/space
+    ports:
+      - 3000:3000
+    networks:
+      - productivity-network
+      - shared-network
+
+  # Plane Project Management Stack
+  plane-redis:
+    image: redis:7.2-alpine
+    container_name: plane-redis
+    restart: unless-stopped
+    command: redis-server --requirepass plane_redis
+    volumes:
+      - ./config/plane/redis-data:/data
+    networks:
+      - productivity-network
+
+  plane-postgres:
+    image: postgres:15.2-alpine
+    container_name: plane-postgres
+    restart: unless-stopped
+    command: postgres -c 'max_connections=1000'
+    volumes:
+      - ./config/plane/pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: plane
+      POSTGRES_DB: plane
+      POSTGRES_PASSWORD: plane
+      PGDATA: /var/lib/postgresql/data
+    networks:
+      - productivity-network
+
+  plane-minio:
+    image: minio/minio:latest
+    container_name: plane-minio
+    restart: unless-stopped
+    command: server /export --console-address ":9090"
+    volumes:
+      - ./config/plane/uploads:/export
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: password
+    ports:
+      - 9000:9000
+      - 9090:9090
+    networks:
+      - productivity-network
+      - shared-network
+
+  plane-web:
+    image: makeplane/plane-frontend:latest
+    container_name: plane-frontend
+    restart: unless-stopped
+    command: node web/server.js web
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://10.0.0.16:8001
+    depends_on:
+      - plane-backend
+      - plane-postgres
+    ports:
+      - 3001:3000
+    networks:
+      - productivity-network
+      - shared-network
+
+  plane-space:
+    image: makeplane/plane-space:latest
+    container_name: plane-space
+    restart: unless-stopped
+    command: node space/server.js space
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://10.0.0.16:8001
+    depends_on:
+      - plane-backend
+      - plane-postgres
+    ports:
+      - 4000:4000
+    networks:
+      - productivity-network
+      - shared-network
+
+  plane-backend:
+    image: makeplane/plane-backend:latest
+    container_name: plane-backend
+    restart: unless-stopped
+    command: ./bin/docker-entrypoint-api.sh
+    environment:
+      SENTRY_DSN: ""
+      DJANGO_SETTINGS_MODULE: plane.settings.production
+      
+      DATABASE_URL: postgresql://plane:plane@plane-postgres:5432/plane
+      REDIS_URL: redis://:plane_redis@plane-redis:6379/
+      
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: admin
+      AWS_SECRET_ACCESS_KEY: password
+      AWS_S3_ENDPOINT_URL: http://plane-minio:9000
+      AWS_S3_BUCKET_NAME: uploads
+      USE_MINIO: 1
+      
+      SECRET_KEY: 60gp0byfz2dvffa45cxdqg+4c24dj_wa8tcnfzm#c&_t_da=!u
+      
+      EMAIL_BACKEND: django.core.mail.backends.console.EmailBackend
+      
+      # Optional email configuration
+      # EMAIL_BACKEND: django.core.mail.backends.smtp.EmailBackend
+      # EMAIL_HOST: smtp.gmail.com
+      # EMAIL_PORT: 587
+      # EMAIL_HOST_USER: your-email@gmail.com
+      # EMAIL_HOST_PASSWORD: your-app-password
+      # EMAIL_USE_TLS: 1
+      # DEFAULT_FROM_EMAIL: your-email@gmail.com
+      
+      ENABLE_SIGNUP: 1
+      WEB_URL: http://10.0.0.16:3001
+    depends_on:
+      - plane-postgres
+      - plane-redis
+      - plane-minio
+    ports:
+      - 8001:8000  # Changed to avoid port conflict
+    volumes:
+      - ./config/plane/logs:/code/plane/logs
+    networks:
+      - productivity-network
+      - shared-network
+
+  plane-worker:
+    image: makeplane/plane-backend:latest
+    container_name: plane-bgworker
+    restart: unless-stopped
+    command: ./bin/docker-entrypoint-worker.sh
+    environment:
+      SENTRY_DSN: ""
+      DJANGO_SETTINGS_MODULE: plane.settings.production
+      
+      DATABASE_URL: postgresql://plane:plane@plane-postgres:5432/plane
+      REDIS_URL: redis://:plane_redis@plane-redis:6379/
+      
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: admin
+      AWS_SECRET_ACCESS_KEY: password
+      AWS_S3_ENDPOINT_URL: http://plane-minio:9000
+      AWS_S3_BUCKET_NAME: uploads
+      USE_MINIO: 1
+      
+      SECRET_KEY: 60gp0byfz2dvffa45cxdqg+4c24dj_wa8tcnfzm#c&_t_da=!u
+      
+      EMAIL_BACKEND: django.core.mail.backends.console.EmailBackend
+    depends_on:
+      - plane-backend
+      - plane-postgres
+      - plane-redis
+    volumes:
+      - ./config/plane/logs:/code/plane/logs
+    networks:
+      - productivity-network
+
+  plane-beat-worker:
+    image: makeplane/plane-backend:latest
+    container_name: plane-beatworker
+    restart: unless-stopped
+    command: ./bin/docker-entrypoint-beat.sh
+    environment:
+      SENTRY_DSN: ""
+      DJANGO_SETTINGS_MODULE: plane.settings.production
+      
+      DATABASE_URL: postgresql://plane:plane@plane-postgres:5432/plane
+      REDIS_URL: redis://:plane_redis@plane-redis:6379/
+      
+      SECRET_KEY: 60gp0byfz2dvffa45cxdqg+4c24dj_wa8tcnfzm#c&_t_da=!u
+    depends_on:
+      - plane-backend
+      - plane-postgres
+      - plane-redis
+    volumes:
+      - ./config/plane/logs:/code/plane/logs
+    networks:
+      - productivity-network
+
+networks:
+  productivity-network:
+    driver: bridge
+  shared-network:
+    external: true

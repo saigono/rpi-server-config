@@ -1,0 +1,105 @@
+# Global options
+{
+	# Use local CA for internal domains (.local, .lan)
+	local_certs
+	
+	# Admin API endpoint
+	admin localhost:2019
+}
+
+# HTTP sites - Simple redirects to service ports
+http://go.local, http://go, http://10.0.0.16, http://localhost {
+	# Serve static dashboard for root requests
+	root * /srv
+	file_server
+	
+	# Media Services - Direct redirects to ports
+	redir /series http://{host}:8989 permanent
+	redir /movies http://{host}:7878 permanent  
+	redir /indexers http://{host}:9696 permanent
+	redir /downloads http://{host}:8112 permanent
+	redir /plex http://{host}:32400 permanent
+	
+	# Productivity Services - Direct redirects to ports
+	redir /notes http://{host}:3000 permanent
+	redir /projects http://{host}:3001 permanent
+	redir /plane http://{host}:3001 permanent
+	redir /space http://{host}:4000 permanent
+	redir /storage http://{host}:9090 permanent
+	
+	# System Services - Direct redirects to ports
+	redir /dns http://{host}:5380 permanent
+	redir /api http://{host}:8001 permanent
+	
+	# Enable compression
+	encode gzip zstd
+}
+
+# HTTPS sites - Same redirects but with HTTPS dashboard
+https://go.local {
+	# Serve static dashboard for root requests
+	root * /srv
+	file_server
+	
+	# Media Services - Direct redirects to ports (HTTP)
+	redir /series http://10.0.0.16:8989 permanent
+	redir /movies http://10.0.0.16:7878 permanent  
+	redir /indexers http://10.0.0.16:9696 permanent
+	redir /downloads http://10.0.0.16:8112 permanent
+	redir /plex http://10.0.0.16:32400 permanent
+	
+	# Productivity Services - Direct redirects to ports (HTTP)
+	redir /notes http://10.0.0.16:3000 permanent
+	redir /projects http://10.0.0.16:3001 permanent
+	redir /plane http://10.0.0.16:3001 permanent
+	redir /space http://10.0.0.16:4000 permanent
+	redir /storage http://10.0.0.16:9090 permanent
+	
+	# System Services - Direct redirects to ports (HTTP)
+	redir /dns http://10.0.0.16:5380 permanent
+	redir /api http://10.0.0.16:8001 permanent
+	
+	# Security headers
+	header {
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		X-XSS-Protection "1; mode=block"
+		Referrer-Policy "strict-origin-when-cross-origin"
+	}
+	
+	# Enable compression
+	encode gzip zstd
+}
+
+# Optional: Direct HTTPS access to services (redirect to HTTP ports)
+plex.go.local {
+	redir http://10.0.0.16:32400 permanent
+}
+
+sonarr.go.local {
+	redir http://10.0.0.16:8989 permanent
+}
+
+radarr.go.local {
+	redir http://10.0.0.16:7878 permanent
+}
+
+prowlarr.go.local {
+	redir http://10.0.0.16:9696 permanent
+}
+
+deluge.go.local {
+	redir http://10.0.0.16:8112 permanent
+}
+
+plane.go.local {
+	redir http://10.0.0.16:3001 permanent
+}
+
+notes.go.local {
+	redir http://10.0.0.16:3000 permanent
+}
+
+minio.go.local {
+	redir http://10.0.0.16:9090 permanent
+}

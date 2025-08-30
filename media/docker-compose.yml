@@ -1,0 +1,109 @@
+services:
+  deluge:
+    image: linuxserver/deluge
+    container_name: deluge
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Moscow
+    volumes:
+      - ./config/deluge:/config
+      - /data/downloads:/downloads
+    ports:
+      - 8112:8112
+      - 6881:6881
+      - 6881:6881/udp
+    networks:
+      - media-network
+      - shared-network
+    restart: unless-stopped
+
+  plex:
+    image: linuxserver/plex
+    container_name: plex
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - VERSION=docker
+    volumes:
+      - ./config/plex:/config
+      - /data/media:/media
+    restart: unless-stopped
+
+  sonarr:
+    image: linuxserver/sonarr
+    container_name: sonarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Moscow
+    volumes:
+      - ./config/sonarr:/config
+      - /data/media/tv:/tv
+      - /data/downloads:/downloads
+    ports:
+      - 8989:8989
+    networks:
+      - media-network
+      - shared-network
+    restart: unless-stopped
+
+  radarr:
+    image: linuxserver/radarr
+    container_name: radarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Moscow
+    volumes:
+      - ./config/radarr:/config
+      - /data/media/movies:/movies
+      - /data/downloads:/downloads
+    ports:
+      - 7878:7878
+    networks:
+      - media-network
+      - shared-network
+    restart: unless-stopped
+
+  prowlarr:
+    image: linuxserver/prowlarr:latest
+    container_name: prowlarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Moscow
+    volumes:
+      - ./config/prowlarr:/config
+    ports:
+      - 9696:9696
+    networks:
+      - media-network
+      - shared-network
+    restart: unless-stopped
+
+  # Uncomment when needed
+  # threadfin:
+  #   image: fyb3roptik/threadfin:latest
+  #   container_name: threadfin
+  #   environment:
+  #     - PUID=1000
+  #     - PGID=1000
+  #     - TZ=Europe/Moscow
+  #   volumes:
+  #     - ./config/threadfin/conf:/home/threadfin/conf
+  #     - ./config/threadfin/data:/data
+  #     - ./config/threadfin/temp:/tmp/threadfin
+  #   ports:
+  #     - 34400:34400
+  #   networks:
+  #     - media-network
+  #     - shared-network
+  #   restart: unless-stopped
+
+networks:
+  media-network:
+    driver: bridge
+  shared-network:
+    external: true

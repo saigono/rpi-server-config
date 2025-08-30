@@ -1,0 +1,43 @@
+services:
+  dnsmasq:
+    image: dockurr/dnsmasq
+    container_name: dnsmasq
+    ports:
+      - 53:53/udp
+      - 5380:5380  # Web interface
+    environment:
+      - "HTTP_USER=admin"
+      - "HTTP_PASS=admin"
+    volumes:
+      - ./config/dnsmasq.conf:/etc/dnsmasq.conf
+    restart: unless-stopped
+    networks:
+      - infrastructure-network
+      - shared-network
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: caddy
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./config/caddy/Caddyfile:/etc/caddy/Caddyfile
+      - ./config/caddy/data:/data
+      - ./config/caddy/config:/config
+      - ./config/caddy/sites:/srv
+    networks:
+      - infrastructure-network
+      - shared-network
+    restart: unless-stopped
+    depends_on:
+      - dnsmasq
+    # Enable Docker API access for automatic service discovery (optional)
+    # volumes:
+    #   - /var/run/docker.sock:/var/run/docker.sock:ro
+
+networks:
+  infrastructure-network:
+    driver: bridge
+  shared-network:
+    external: true
