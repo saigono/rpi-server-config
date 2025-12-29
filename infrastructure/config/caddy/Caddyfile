@@ -23,11 +23,12 @@
 	# Productivity Services - Direct redirects to ports
 	redir /notes http://{host}:3000 permanent
 	redir /projects http://{host}:3001 permanent
-	redir /plane http://{host}:3001 permanent
 	redir /space http://{host}:4000 permanent
 	redir /storage http://{host}:9090 permanent
 	redir /time http://{host}:8010 permanent
 	redir /kimai http://{host}:8010 permanent
+	redir /openproject http://{host}:8020 permanent
+	redir /project http://{host}:8020 permanent
 	
 	# System Services - Direct redirects to ports
 	redir /dns http://{host}:5380 permanent
@@ -53,11 +54,12 @@ https://go.local {
 	# Productivity Services - Direct redirects to ports (HTTP)
 	redir /notes http://10.0.0.16:3000 permanent
 	redir /projects http://10.0.0.16:3001 permanent
-	redir /plane http://10.0.0.16:3001 permanent
 	redir /space http://10.0.0.16:4000 permanent
 	redir /storage http://10.0.0.16:9090 permanent
 	redir /time http://10.0.0.16:8010 permanent
 	redir /kimai http://10.0.0.16:8010 permanent
+	redir /openproject http://10.0.0.16:8020 permanent
+	redir /project http://10.0.0.16:8020 permanent
 	
 	# System Services - Direct redirects to ports (HTTP)
 	redir /dns http://10.0.0.16:5380 permanent
@@ -96,10 +98,6 @@ deluge.go.local {
 	redir http://10.0.0.16:8112 permanent
 }
 
-plane.go.local {
-	redir http://10.0.0.16:3001 permanent
-}
-
 notes.go.local {
 	redir http://10.0.0.16:3000 permanent
 }
@@ -116,3 +114,10 @@ time.go.local {
 	redir http://10.0.0.16:8010 permanent
 }
 
+openproject.go.local {
+	redir http://10.0.0.16:8020 permanent
+}
+
+project.go.local {
+	redir http://10.0.0.16:8020 permanent
+}
