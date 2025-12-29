@@ -13,6 +13,52 @@ services:
       - productivity-network
       - shared-network
 
+ # Kimai Time Tracking Stack
+  kimai-db:
+    image: mysql:8.0
+    container_name: kimai-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: kimai
+      MYSQL_USER: kimai
+      MYSQL_PASSWORD: kimai_password
+      MYSQL_ROOT_PASSWORD: root_password
+    volumes:
+      - ./config/kimai/mysql:/var/lib/mysql
+    command: --default-storage-engine=innodb --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    networks:
+      - productivity-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kimai:
+    image: kimai/kimai2:apache
+    container_name: kimai
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: mysql://kimai:kimai_password@kimai-db:3306/kimai?charset=utf8mb4&serverVersion=8.0
+      TRUSTED_HOSTS: "^.*$$"
+      MAILER_FROM: kimai@go.local
+      # Change this to a random string (you can generate one with: openssl rand -hex 32)
+      APP_SECRET: 2c89c0135d93e032b07bc26c992c306b5092cd960f40093b53e3dc9334ede832      
+      # Admin credentials for first login
+      ADMINMAIL: admin@example.com
+      ADMINPASS: admin123
+    volumes:
+      - ./config/kimai/data:/opt/kimai/var
+    ports:
+      - 8010:8001
+    depends_on:
+      kimai-db:
+        condition: service_healthy
+    networks:
+      - productivity-network
+      - shared-network
+
+
   # Plane Project Management Stack
   plane-redis:
     image: redis:7.2-alpine
