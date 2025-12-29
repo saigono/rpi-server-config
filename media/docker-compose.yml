@@ -83,25 +83,6 @@ services:
       - shared-network
     restart: unless-stopped
 
-  # Uncomment when needed
-  # threadfin:
-  #   image: fyb3roptik/threadfin:latest
-  #   container_name: threadfin
-  #   environment:
-  #     - PUID=1000
-  #     - PGID=1000
-  #     - TZ=Europe/Moscow
-  #   volumes:
-  #     - ./config/threadfin/conf:/home/threadfin/conf
-  #     - ./config/threadfin/data:/data
-  #     - ./config/threadfin/temp:/tmp/threadfin
-  #   ports:
-  #     - 34400:34400
-  #   networks:
-  #     - media-network
-  #     - shared-network
-  #   restart: unless-stopped
-
 networks:
   media-network:
     driver: bridge

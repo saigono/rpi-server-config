@@ -8,7 +8,7 @@
 }
 
 # HTTP sites - Simple redirects to service ports
-http://go.local, http://go, http://10.0.0.16, http://localhost {
+:80 {
 	# Serve static dashboard for root requests
 	root * /srv
 	file_server
@@ -26,6 +26,8 @@ http://go.local, http://go, http://10.0.0.16, http://localhost {
 	redir /plane http://{host}:3001 permanent
 	redir /space http://{host}:4000 permanent
 	redir /storage http://{host}:9090 permanent
+	redir /time http://{host}:8010 permanent
+	redir /kimai http://{host}:8010 permanent
 	
 	# System Services - Direct redirects to ports
 	redir /dns http://{host}:5380 permanent
@@ -54,6 +56,8 @@ https://go.local {
 	redir /plane http://10.0.0.16:3001 permanent
 	redir /space http://10.0.0.16:4000 permanent
 	redir /storage http://10.0.0.16:9090 permanent
+	redir /time http://10.0.0.16:8010 permanent
+	redir /kimai http://10.0.0.16:8010 permanent
 	
 	# System Services - Direct redirects to ports (HTTP)
 	redir /dns http://10.0.0.16:5380 permanent
@@ -103,3 +107,12 @@ notes.go.local {
 minio.go.local {
 	redir http://10.0.0.16:9090 permanent
 }
+
+kimai.go.local {
+	redir http://10.0.0.16:8010 permanent
+}
+
+time.go.local {
+	redir http://10.0.0.16:8010 permanent
+}
+
