@@ -27,8 +27,7 @@
 	redir /storage http://{host}:9090 permanent
 	redir /time http://{host}:8010 permanent
 	redir /kimai http://{host}:8010 permanent
-	redir /openproject http://{host}:8020 permanent
-	redir /project http://{host}:8020 permanent
+	redir /kaneo http://{host}:5173 permanent
 	
 	# System Services - Direct redirects to ports
 	redir /dns http://{host}:5380 permanent
@@ -58,8 +57,7 @@ https://go.local {
 	redir /storage http://10.0.0.16:9090 permanent
 	redir /time http://10.0.0.16:8010 permanent
 	redir /kimai http://10.0.0.16:8010 permanent
-	redir /openproject http://10.0.0.16:8020 permanent
-	redir /project http://10.0.0.16:8020 permanent
+	redir /kaneo http://10.0.0.16:5173 permanent
 	
 	# System Services - Direct redirects to ports (HTTP)
 	redir /dns http://10.0.0.16:5380 permanent
@@ -114,10 +112,7 @@ time.go.local {
 	redir http://10.0.0.16:8010 permanent
 }
 
-openproject.go.local {
-	redir http://10.0.0.16:8020 permanent
+kaneo.go.local {
+	redir http://10.0.0.16:5173 permanent
 }
 
-project.go.local {
-	redir http://10.0.0.16:8020 permanent
-}

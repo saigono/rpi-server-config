@@ -58,58 +58,47 @@ services:
       - productivity-network
       - shared-network
 
-  # OpenProject - использует PostgreSQL (свой)
-  openproject-db:
-    image: postgres:13
-    container_name: openproject-db
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: openproject
-      POSTGRES_USER: openproject
-      POSTGRES_PASSWORD: openproject_password
+  kaneo-postgres:
+    image: postgres:16-alpine
+    env_file:
+      - config/kaneo/.env
+    ports:
+      - "5432:5432"
     volumes:
-      - ./config/openproject/pgdata:/var/lib/postgresql/data
-    networks:
-      - productivity-network
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U openproject"]
+      test: ["CMD-SHELL", "pg_isready -U kaneo -d kaneo"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  openproject:
-    image: openproject/openproject:15
-    container_name: openproject
-    restart: unless-stopped
-    environment:
-      # Database
-      DATABASE_URL: postgresql://openproject:openproject_password@openproject-db:5432/openproject
-      
-      SECRET_KEY_BASE: "d65f31dc5469fc3841e73866f341b4c27a8587b619bee6acfd1acaae07ced837"
-      
-      # Default admin credentials
-      OPENPROJECT_ADMIN_EMAIL: admin@example.com
-      OPENPROJECT_ADMIN_PASSWORD: admin
-      
-      # App settings
-      OPENPROJECT_HOST__NAME: 10.0.0.16:8020
-      OPENPROJECT_HTTPS: 0
-      OPENPROJECT_HSTS: 0
-      
-    volumes:
-      - ./config/openproject/assets:/var/openproject/assets
-      - ./config/openproject/pgdata-backup:/var/openproject/backup
+  kaneo-api:
+    image: ghcr.io/usekaneo/api:latest
     ports:
-      - 8020:80
+      - "1337:1337"
+    env_file:
+      - config/kaneo/.env
     depends_on:
-      openproject-db:
+      kaneo-postgres:
         condition: service_healthy
-    networks:
-      - productivity-network
-      - shared-network
+    restart: unless-stopped
+
+  kaneo-web:
+    image: ghcr.io/usekaneo/web:latest
+    ports:
+      - "5173:5173"
+    env_file:
+      - config/kaneo/.env
+    depends_on:
+      - kaneo-api
+    restart: unless-stopped
 
 networks:
   productivity-network:
     driver: bridge
   shared-network:
     external: true
+
+volumes:
+  postgres_data:
