@@ -8,6 +8,8 @@ services:
       - TZ=Europe/Moscow
     volumes:
       - ./config/deluge:/config
+      - /data:/data
+      # legacy: keeps torrents added before the /data switch seeding
       - /data/downloads:/downloads
     ports:
       - 8112:8112
@@ -40,8 +42,7 @@ services:
       - TZ=Europe/Moscow
     volumes:
       - ./config/sonarr:/config
-      - /data/media/tv:/tv
-      - /data/downloads:/downloads
+      - /data:/data
     ports:
       - 8989:8989
     networks:
@@ -58,8 +59,7 @@ services:
       - TZ=Europe/Moscow
     volumes:
       - ./config/radarr:/config
-      - /data/media/movies:/movies
-      - /data/downloads:/downloads
+      - /data:/data
     ports:
       - 7878:7878
     networks:
