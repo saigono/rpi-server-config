@@ -83,6 +83,19 @@ services:
       - shared-network
     restart: unless-stopped
 
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:v3.5.0
+    container_name: flaresolverr
+    environment:
+      - LOG_LEVEL=info
+      - TZ=Europe/Moscow
+    # prowlarr reaches it in-network at http://flaresolverr:8191 (Indexer Proxy),
+    # so 8191 stays unpublished. note: kernel has cgroup_disable=memory, so a
+    # mem_limit here would be silently ignored.
+    networks:
+      - media-network
+    restart: unless-stopped
+
 networks:
   media-network:
     driver: bridge
